@@ -83,3 +83,14 @@ for (var layer in rarityData) {
   }
   console.log();
 }
+
+const formattedObject = {};
+
+for (const layer in rarityData) {
+  formattedObject[layer] = rarityData[layer];
+}
+
+fs.writeFileSync(
+  "build/json/_rarity-data.json",
+  JSON.stringify(formattedObject, null, 2)
+);
