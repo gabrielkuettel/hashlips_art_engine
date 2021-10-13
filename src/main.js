@@ -1,6 +1,7 @@
 "use strict";
 
 const path = require("path");
+const crypto = require("crypto");
 const isLocal = typeof process.pkg === "undefined";
 const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
 const fs = require("fs");
@@ -106,18 +107,25 @@ const drawBackground = () => {
   ctx.fillRect(0, 0, format.width, format.height);
 };
 
+const getChecksum = (filepath) => {
+  const file_buffer = fs.readFileSync(filepath);
+  const sum = crypto.createHash("md5").update(file_buffer).digest("hex");
+
+  return sum;
+};
+
 const addMetadata = (_dna, _edition) => {
-  let dateTime = Date.now();
   let tempMetadata = {
     dna: sha1(_dna.join("")),
     name: `#${_edition}`,
     description: description,
     image: `${baseUri}/${_edition}.png`,
+    checksum: getChecksum(`${basePath}/build/images/${_edition}.png`),
     edition: _edition,
-    date: dateTime,
+    date: new Date(Date.now()).toLocaleDateString("en-US"),
     ...extraMetadata,
     attributes: attributesList,
-    compiler: "HashLips Art Engine",
+    compiler: "0toa100 v1.0",
   };
   metadataList.push(tempMetadata);
   attributesList = [];
