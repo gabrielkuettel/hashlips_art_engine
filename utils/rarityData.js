@@ -12,7 +12,7 @@ const { layerConfigurations } = require(path.join(basePath, "/src/config.js"));
 const { getElements } = require("../src/main.js");
 
 // read json data
-let rawdata = fs.readFileSync(`${basePath}/build/json/_metadata.json`);
+let rawdata = fs.readFileSync(`${basePath}/build/json/_metadata.json`, "utf8");
 let data = JSON.parse(rawdata);
 let editionSize = data.length;
 
@@ -26,12 +26,14 @@ layerConfigurations.forEach((config) => {
     // get elements for each layer
     let elementsForLayer = [];
     let elements = getElements(`${layersDir}/${layer.name}/`);
+
     elements.forEach((element) => {
       // just get name and weight for each element
       let rarityDataElement = {
         trait: element.name,
         chance: element.weight.toFixed(0),
-        occurrence: 0, // initialize at 0
+        occurrence: 0,
+        percent: 0, // initialize at 0
       };
       elementsForLayer.push(rarityDataElement);
     });
@@ -44,7 +46,7 @@ layerConfigurations.forEach((config) => {
   });
 });
 
-// fill up rarity chart with occurrences from metadata
+// fill up rarity chart with percents from metadata
 data.forEach((element) => {
   let attributes = element.attributes;
 
@@ -55,23 +57,23 @@ data.forEach((element) => {
     let rarityDataTraits = rarityData[traitType];
     rarityDataTraits.forEach((rarityDataTrait) => {
       if (rarityDataTrait.trait == value) {
-        // keep track of occurrences
-        rarityDataTrait.occurrence++;
+        // keep track of percents
+        rarityDataTrait.percent++;
       }
     });
   });
 });
 
-// convert occurrences to percentages
+// convert percents to percentages
 for (var layer in rarityData) {
   for (var attribute in rarityData[layer]) {
     // convert to percentage
-    rarityData[layer][attribute].occurrence =
-      (rarityData[layer][attribute].occurrence / editionSize) * 100;
+    rarityData[layer][attribute].percent =
+      (rarityData[layer][attribute].percent / editionSize) * 100;
 
     // show two decimal places in percent
-    rarityData[layer][attribute].occurrence =
-      rarityData[layer][attribute].occurrence.toFixed(0) + "% out of 100%";
+    rarityData[layer][attribute].percent =
+      rarityData[layer][attribute].percent.toFixed(2) + "% out of 100%";
   }
 }
 
