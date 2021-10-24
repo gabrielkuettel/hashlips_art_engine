@@ -58,6 +58,8 @@ export type LayerElement = {
 
 export type LayerOrder = {
   name: string;
+  blend?: string;
+  opacity?: number;
 }[];
 
 export type LayerConfigurations = {

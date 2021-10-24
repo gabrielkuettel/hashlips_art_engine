@@ -1,10 +1,10 @@
 import type { LayerConfigurations } from "@types";
 
-const description = "Algorilla NFT Project";
-const baseUri =
+const DESCRIPTION = "Algorilla NFT Project";
+const BASE_URI =
   "https://res.cloudinary.com/juniorsyndicate/image/upload/algorillas_prod";
 
-const layerConfigurations: LayerConfigurations = [
+const LAYER_CONFIGURATIONS: LayerConfigurations = [
   // // AD (Arm Down)
   {
     growEditionSizeTo: 10,
@@ -69,27 +69,27 @@ const layerConfigurations: LayerConfigurations = [
   // },
 ];
 
-const shuffleLayerConfigurations = true;
+const SHUFFLE_LAYER_CONFIGURATIONS = true;
 
-const debugLogs = false;
+const DEBUG_LOGS = false;
 
 const FORMAT = {
   width: 512,
   height: 512,
 };
 
-const background = {
+const BACKGROUND = {
   generate: true,
   brightness: "80%",
 };
 
-const extraMetadata = {};
+const EXTRA_METADATA = {};
 
-const rarityDelimiter = "#";
+const RARITY_DELIMITER = "#";
 
-const uniqueDnaTorrance = 10000;
+const UNIQUE_DNA_TOLERANCE = 10000;
 
-const preview = {
+const PREVIEW = {
   thumbPerRow: 10,
   thumbWidth: 200,
   imageRatio: FORMAT.width / FORMAT.height,
@@ -98,14 +98,14 @@ const preview = {
 
 export {
   FORMAT,
-  baseUri,
-  description,
-  background,
-  uniqueDnaTorrance,
-  layerConfigurations,
-  rarityDelimiter,
-  preview,
-  shuffleLayerConfigurations,
-  debugLogs,
-  extraMetadata,
+  BASE_URI,
+  DESCRIPTION,
+  BACKGROUND,
+  UNIQUE_DNA_TOLERANCE,
+  LAYER_CONFIGURATIONS,
+  RARITY_DELIMITER,
+  PREVIEW,
+  SHUFFLE_LAYER_CONFIGURATIONS,
+  DEBUG_LOGS,
+  EXTRA_METADATA,
 };

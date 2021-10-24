@@ -5,14 +5,14 @@ import { createCanvas } from "canvas";
 
 import {
   FORMAT,
-  baseUri,
-  description,
-  background,
-  uniqueDnaTorrance,
-  layerConfigurations,
-  shuffleLayerConfigurations,
-  debugLogs,
-  extraMetadata,
+  BASE_URI,
+  DESCRIPTION,
+  BACKGROUND,
+  UNIQUE_DNA_TOLERANCE,
+  LAYER_CONFIGURATIONS,
+  SHUFFLE_LAYER_CONFIGURATIONS,
+  DEBUG_LOGS,
+  EXTRA_METADATA,
 } from "./config";
 
 import {
@@ -61,25 +61,27 @@ const addMetadata = (_dna: string[], _edition: number) => {
     edition: _edition,
     dna: sha1(_dna.join("")),
     name: `Algorilla #${_edition}`,
-    description: description,
-    image: `${baseUri}/${_edition}.png`,
+    description: DESCRIPTION,
+    image: `${BASE_URI}/${_edition}.png`,
     imageChecksum: getChecksum(`${basePath}/build/images/${_edition}.png`),
     assetId: null,
     dateGenerated: new Date(Date.now()).toLocaleDateString("en-US"),
     dateMinted: null,
     attributes: attributesList,
     compiler: "v1.0",
-    ...extraMetadata,
+    ...EXTRA_METADATA,
   };
+
   metadataList.push(tempMetadata);
   attributesList = [];
 };
 
-const addAttributes = (_element) => {
-  let selectedElement = _element.layer.selectedElement;
+const addAttributes = (element: LoadedImage) => {
+  let selectedElement = element.layer.selectedElement;
+
   attributesList.push({
-    trait_type: _element.layer.name,
-    value: selectedElement.name,
+    trait_type: element.layer.name,
+    value: selectedElement?.name as string,
   });
 };
 
@@ -93,15 +95,17 @@ const writeMetadata = (data: string) => {
   fs.writeFileSync(`${buildDir}/json/_metadata.json`, data);
 };
 
-const saveMetadataSingleFile = (_editionCount) => {
-  let metadata = metadataList.find((meta) => meta.edition == _editionCount);
-  debugLogs
+const saveMetadataSingleFile = (editionCount: number) => {
+  let metadata = metadataList.find((meta) => meta.edition == editionCount);
+
+  DEBUG_LOGS
     ? console.log(
-        `Writing metadata for ${_editionCount}: ${JSON.stringify(metadata)}`
+        `Writing metadata for ${editionCount}: ${JSON.stringify(metadata)}`
       )
     : null;
+
   fs.writeFileSync(
-    `${buildDir}/json/${_editionCount}.json`,
+    `${buildDir}/json/${editionCount}.json`,
     JSON.stringify(metadata, null, 2)
   );
 };
@@ -114,27 +118,28 @@ const startCreating = async () => {
 
   for (
     let i = 1;
-    i <= layerConfigurations[layerConfigurations.length - 1].growEditionSizeTo;
+    i <=
+    LAYER_CONFIGURATIONS[LAYER_CONFIGURATIONS.length - 1].growEditionSizeTo;
     i++
   ) {
     abstractedIndexes.push(i);
   }
 
-  if (shuffleLayerConfigurations) {
+  if (SHUFFLE_LAYER_CONFIGURATIONS) {
     abstractedIndexes = shuffle(abstractedIndexes);
   }
 
-  debugLogs
+  DEBUG_LOGS
     ? console.log("Editions left to create: ", abstractedIndexes)
     : null;
 
-  while (layerConfigIndex < layerConfigurations.length) {
+  while (layerConfigIndex < LAYER_CONFIGURATIONS.length) {
     const layers: Layer[] = setupLayers(
-      layerConfigurations[layerConfigIndex].layersOrder
+      LAYER_CONFIGURATIONS[layerConfigIndex].layersOrder
     );
 
     while (
-      editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
+      editionCount <= LAYER_CONFIGURATIONS[layerConfigIndex].growEditionSizeTo
     ) {
       const newDNA: DNA = createWeightedDNA(layers);
 
@@ -146,11 +151,11 @@ const startCreating = async () => {
         });
 
         await Promise.all(loadedElements).then((renderObjectArray) => {
-          debugLogs ? console.log("Clearing canvas") : null;
+          DEBUG_LOGS ? console.log("Clearing canvas") : null;
 
           ctx.clearRect(0, 0, FORMAT.width, FORMAT.height);
 
-          if (background.generate) {
+          if (BACKGROUND.generate) {
             drawBackground();
           }
 
@@ -159,7 +164,7 @@ const startCreating = async () => {
             addAttributes(renderObject);
           });
 
-          debugLogs
+          DEBUG_LOGS
             ? console.log("Editions left to create: ", abstractedIndexes)
             : null;
 
@@ -180,9 +185,9 @@ const startCreating = async () => {
       } else {
         console.log("DNA exists!");
         failedCount++;
-        if (failedCount >= uniqueDnaTorrance) {
+        if (failedCount >= UNIQUE_DNA_TOLERANCE) {
           console.log(
-            `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
+            `You need more layers or elements to grow your edition to ${LAYER_CONFIGURATIONS[layerConfigIndex].growEditionSizeTo} artworks!`
           );
           process.exit();
         }
