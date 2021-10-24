@@ -1,12 +1,19 @@
 import path from "path";
-import crypto from "crypto";
 import sha1 from "sha1";
 import fs from "fs";
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas } from "canvas";
 
 import type { LayerConfigurations, LayersOrder } from "./config";
 
-import { layersSetup, getElements } from "./util";
+import {
+  layersSetup,
+  shuffle,
+  saveImage,
+  drawBackground,
+  getChecksum,
+  loadLayerImg,
+  constructLayerToDNA,
+} from "./util";
 
 export const basePath = process.cwd();
 export const buildDir = path.join(basePath, "/build");
@@ -19,14 +26,13 @@ import {
   background,
   uniqueDnaTorrance,
   layerConfigurations,
-  rarityDelimiter,
   shuffleLayerConfigurations,
   debugLogs,
   extraMetadata,
 } from "./config";
 
-const canvas = createCanvas(format.width, format.height);
-const ctx = canvas.getContext("2d");
+export const canvas = createCanvas(format.width, format.height);
+export const ctx = canvas.getContext("2d");
 
 type AttributesList = {
   trait_type: string;
@@ -60,37 +66,8 @@ const buildSetup = () => {
   fs.mkdirSync(path.join(buildDir, "/images"));
 };
 
-const cleanDna = (_str: string) => {
-  var dna = Number(_str.split(":").shift());
-  return dna;
-};
-
-const saveImage = (_editionCount) => {
-  fs.writeFileSync(
-    `${buildDir}/images/${_editionCount}.png`,
-    canvas.toBuffer("image/png")
-  );
-};
-
-const genColor = () => {
-  let hue = Math.floor(Math.random() * 360);
-  let pastel = `hsl(${hue}, 100%, ${background.brightness})`;
-  return pastel;
-};
-
-const drawBackground = () => {
-  ctx.fillStyle = genColor();
-  ctx.fillRect(0, 0, format.width, format.height);
-};
-
-const getChecksum = (filepath) => {
-  const file_buffer = fs.readFileSync(filepath);
-  const sum = crypto.createHash("md5").update(file_buffer).digest("hex");
-
-  return sum;
-};
-
 const addMetadata = (_dna: string[], _edition: number) => {
+  console.log("dna", _dna);
   let tempMetadata = {
     edition: _edition,
     dna: sha1(_dna.join("")),
@@ -117,33 +94,11 @@ const addAttributes = (_element) => {
   });
 };
 
-const loadLayerImg = async (_layer) => {
-  return new Promise(async (resolve) => {
-    const image = await loadImage(`${_layer.selectedElement.path}`);
-    resolve({ layer: _layer, loadedImage: image });
-  });
-};
-
 const drawElement = (_renderObject) => {
   ctx.globalAlpha = _renderObject.layer.opacity;
   ctx.globalCompositeOperation = _renderObject.layer.blendMode;
   ctx.drawImage(_renderObject.loadedImage, 0, 0, format.width, format.height);
   addAttributes(_renderObject);
-};
-
-const constructLayerToDna = (_dna: any = [], _layers: any = []) => {
-  let mappedDnaToLayers = _layers.map((layer: any, index) => {
-    let selectedElement = layer.elements.find(
-      (e) => e.id == cleanDna(_dna[index])
-    );
-    return {
-      name: layer.name,
-      blendMode: layer.blendMode,
-      opacity: layer.opacity,
-      selectedElement: selectedElement,
-    };
-  });
-  return mappedDnaToLayers;
 };
 
 const isDnaUnique = (_DnaList: any = [], _dna: any = []) => {
@@ -190,20 +145,6 @@ const saveMetaDataSingleFile = (_editionCount) => {
   );
 };
 
-function shuffle(array: number[]) {
-  let currentIndex = array.length,
-    randomIndex;
-  while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-  return array;
-}
-
 const startCreating = async () => {
   let layerConfigIndex = 0;
   let editionCount = 1;
@@ -235,7 +176,7 @@ const startCreating = async () => {
     ) {
       let newDna = createDna(layers);
       if (isDnaUnique(dnaList, newDna)) {
-        let results = constructLayerToDna(newDna, layers);
+        let results = constructLayerToDNA(newDna, layers);
         let loadedElements: any = [];
 
         results.forEach((layer) => {
@@ -282,4 +223,4 @@ const startCreating = async () => {
   writeMetaData(JSON.stringify(metadataList, null, 2));
 };
 
-export { startCreating, buildSetup, getElements };
+export { startCreating, buildSetup };
