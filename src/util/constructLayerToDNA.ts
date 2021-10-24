@@ -1,10 +1,12 @@
 import { cleanDNA } from ".";
+import { Layer } from "./setupLayers";
 
-const constructLayerToDNA = (_dna: any = [], _layers: any = []) => {
-  let mappedDnaToLayers = _layers.map((layer: any, index) => {
+const constructLayerToDNA = (dna: string[] = [], layers: Layer[] = []) => {
+  let mappedDnaToLayers = layers.map((layer, index) => {
     let selectedElement = layer.elements.find(
-      (e) => e.id == cleanDNA(_dna[index])
+      (element) => element.id == cleanDNA(dna[index])
     );
+
     return {
       name: layer.name,
       blendMode: layer.blendMode,
@@ -12,6 +14,7 @@ const constructLayerToDNA = (_dna: any = [], _layers: any = []) => {
       selectedElement: selectedElement,
     };
   });
+
   return mappedDnaToLayers;
 };
 

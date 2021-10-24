@@ -1,11 +1,4 @@
-"use strict";
-
-const path = require("path");
-const basePath = process.cwd();
-const { startCreating, buildSetup } = require(path.join(
-  basePath,
-  "/src/main.ts"
-));
+import { startCreating, buildSetup } from "./src/main";
 
 (() => {
   buildSetup();

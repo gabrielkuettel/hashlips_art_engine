@@ -3,16 +3,18 @@ import sha1 from "sha1";
 import fs from "fs";
 import { createCanvas } from "canvas";
 
-import type { LayerConfigurations, LayersOrder } from "./config";
+import type { DNA } from "./util/createWeightedDNA";
 
 import {
-  layersSetup,
+  setupLayers,
   shuffle,
   saveImage,
   drawBackground,
   getChecksum,
   loadLayerImg,
   constructLayerToDNA,
+  isDNAUnique,
+  createWeightedDNA,
 } from "./util";
 
 export const basePath = process.cwd();
@@ -34,12 +36,12 @@ import {
 export const canvas = createCanvas(format.width, format.height);
 export const ctx = canvas.getContext("2d");
 
-type AttributesList = {
+export type AttributesList = {
   trait_type: string;
   value: string;
 };
 
-type MetadataList = {
+export type MetadataList = {
   edition: number;
   dna: any;
   name: string;
@@ -53,9 +55,11 @@ type MetadataList = {
   compiler: string;
 };
 
+export type DNAList = Array<DNA>;
+
 let attributesList: AttributesList[] = [];
 const metadataList: MetadataList[] = [];
-const dnaList: any = [];
+const dnaList: DNAList = [];
 
 const buildSetup = () => {
   if (fs.existsSync(buildDir)) {
@@ -67,7 +71,6 @@ const buildSetup = () => {
 };
 
 const addMetadata = (_dna: string[], _edition: number) => {
-  console.log("dna", _dna);
   let tempMetadata = {
     edition: _edition,
     dna: sha1(_dna.join("")),
@@ -99,33 +102,6 @@ const drawElement = (_renderObject) => {
   ctx.globalCompositeOperation = _renderObject.layer.blendMode;
   ctx.drawImage(_renderObject.loadedImage, 0, 0, format.width, format.height);
   addAttributes(_renderObject);
-};
-
-const isDnaUnique = (_DnaList: any = [], _dna: any = []) => {
-  let foundDna = _DnaList.find((i) => i.join("") === _dna.join(""));
-  return foundDna == undefined ? true : false;
-};
-
-const createDna = (_layers) => {
-  let randNum: any = [];
-  _layers.forEach((layer) => {
-    var totalWeight = 0;
-    layer.elements.forEach((element) => {
-      totalWeight += element.weight;
-    });
-    // number between 0 - totalWeight
-    let random = Math.floor(Math.random() * totalWeight);
-    for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
-      random -= layer.elements[i].weight;
-      if (random < 0) {
-        return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}`
-        );
-      }
-    }
-  });
-  return randNum;
 };
 
 const writeMetaData = (_data) => {
@@ -168,15 +144,17 @@ const startCreating = async () => {
     : null;
 
   while (layerConfigIndex < layerConfigurations.length) {
-    const layers = layersSetup(
+    const layers = setupLayers(
       layerConfigurations[layerConfigIndex].layersOrder
     );
+
     while (
       editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
     ) {
-      let newDna = createDna(layers);
-      if (isDnaUnique(dnaList, newDna)) {
-        let results = constructLayerToDNA(newDna, layers);
+      const newDNA: DNA = createWeightedDNA(layers);
+
+      if (isDNAUnique(dnaList, newDNA)) {
+        let results = constructLayerToDNA(newDNA, layers);
         let loadedElements: any = [];
 
         results.forEach((layer) => {
@@ -196,15 +174,15 @@ const startCreating = async () => {
             ? console.log("Editions left to create: ", abstractedIndexes)
             : null;
           saveImage(abstractedIndexes[0]);
-          addMetadata(newDna, abstractedIndexes[0]);
+          addMetadata(newDNA, abstractedIndexes[0]);
           saveMetaDataSingleFile(abstractedIndexes[0]);
           console.log(
             `Created edition: ${abstractedIndexes[0]}, with DNA: ${sha1(
-              newDna.join("")
+              newDNA.join("")
             )}`
           );
         });
-        dnaList.push(newDna);
+        dnaList.push(newDNA);
         editionCount++;
         abstractedIndexes.shift();
       } else {
@@ -218,6 +196,7 @@ const startCreating = async () => {
         }
       }
     }
+
     layerConfigIndex++;
   }
   writeMetaData(JSON.stringify(metadataList, null, 2));

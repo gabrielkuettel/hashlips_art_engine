@@ -2,13 +2,13 @@ const description = "Algorilla NFT Project";
 const baseUri =
   "https://res.cloudinary.com/juniorsyndicate/image/upload/algorillas_prod";
 
-export type LayersOrder = {
+export type LayerOrder = {
   name: string;
 }[];
 
 export type LayerConfigurations = {
   growEditionSizeTo: number;
-  layersOrder: LayersOrder;
+  layersOrder: LayerOrder;
 }[];
 
 const layerConfigurations: LayerConfigurations = [

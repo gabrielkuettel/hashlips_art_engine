@@ -1,6 +1,7 @@
-function shuffle(array: number[]) {
+const shuffle = (array: number[]) => {
   let currentIndex = array.length,
     randomIndex;
+
   while (currentIndex != 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
@@ -9,7 +10,8 @@ function shuffle(array: number[]) {
       array[currentIndex],
     ];
   }
+
   return array;
-}
+};
 
 export default shuffle;

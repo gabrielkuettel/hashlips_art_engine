@@ -1,4 +1,4 @@
-export { default as layersSetup } from "./layersSetup";
+export { default as setupLayers } from "./setupLayers";
 export { default as getElements } from "./getElements";
 export { default as cleanName } from "./cleanName";
 export { default as getRarityWeight } from "./getRarityWeight";
@@ -10,3 +10,5 @@ export { default as drawBackground } from "./drawBackground";
 export { default as getChecksum } from "./getChecksum";
 export { default as loadLayerImg } from "./loadLayerImg";
 export { default as constructLayerToDNA } from "./constructLayerToDNA";
+export { default as isDNAUnique } from "./isDNAUnique";
+export { default as createWeightedDNA } from "./createWeightedDNA";
