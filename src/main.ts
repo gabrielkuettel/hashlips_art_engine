@@ -3,26 +3,8 @@ import sha1 from "sha1";
 import fs from "fs";
 import { createCanvas } from "canvas";
 
-import type { DNA } from "./util/createWeightedDNA";
-
 import {
-  setupLayers,
-  shuffle,
-  saveImage,
-  drawBackground,
-  getChecksum,
-  loadLayerImg,
-  constructLayerToDNA,
-  isDNAUnique,
-  createWeightedDNA,
-} from "./util";
-
-export const basePath = process.cwd();
-export const buildDir = path.join(basePath, "/build");
-export const layersDir = path.join(basePath, "/layers");
-
-import {
-  format,
+  FORMAT,
   baseUri,
   description,
   background,
@@ -33,29 +15,33 @@ import {
   extraMetadata,
 } from "./config";
 
-export const canvas = createCanvas(format.width, format.height);
+import {
+  setupLayers,
+  shuffle,
+  saveImage,
+  drawBackground,
+  getChecksum,
+  loadLayerImg,
+  mapDNAToLayers,
+  isDNAUnique,
+  createWeightedDNA,
+} from "./util";
+
+import type {
+  MetadataList,
+  AttributesList,
+  DNA,
+  DNAList,
+  Layer,
+  LoadedImage,
+} from "@types";
+
+export const basePath = process.cwd();
+export const buildDir = path.join(basePath, "/build");
+export const layersDir = path.join(basePath, "/layers");
+
+export const canvas = createCanvas(FORMAT.width, FORMAT.height);
 export const ctx = canvas.getContext("2d");
-
-export type AttributesList = {
-  trait_type: string;
-  value: string;
-};
-
-export type MetadataList = {
-  edition: number;
-  dna: any;
-  name: string;
-  description: string;
-  image: string;
-  imageChecksum: string;
-  assetId: null;
-  dateGenerated: string;
-  dateMinted: null;
-  attributes: any;
-  compiler: string;
-};
-
-export type DNAList = Array<DNA>;
 
 let attributesList: AttributesList[] = [];
 const metadataList: MetadataList[] = [];
@@ -63,7 +49,7 @@ const dnaList: DNAList = [];
 
 const buildSetup = () => {
   if (fs.existsSync(buildDir)) {
-    fs.rmdirSync(buildDir, { recursive: true });
+    fs.rmSync(buildDir, { recursive: true });
   }
   fs.mkdirSync(buildDir);
   fs.mkdirSync(path.join(buildDir, "/json"));
@@ -97,18 +83,17 @@ const addAttributes = (_element) => {
   });
 };
 
-const drawElement = (_renderObject) => {
+const drawElement = (_renderObject: LoadedImage) => {
   ctx.globalAlpha = _renderObject.layer.opacity;
   ctx.globalCompositeOperation = _renderObject.layer.blendMode;
-  ctx.drawImage(_renderObject.loadedImage, 0, 0, format.width, format.height);
-  addAttributes(_renderObject);
+  ctx.drawImage(_renderObject.loadedImage, 0, 0, FORMAT.width, FORMAT.height);
 };
 
-const writeMetaData = (_data) => {
-  fs.writeFileSync(`${buildDir}/json/_metadata.json`, _data);
+const writeMetadata = (data: string) => {
+  fs.writeFileSync(`${buildDir}/json/_metadata.json`, data);
 };
 
-const saveMetaDataSingleFile = (_editionCount) => {
+const saveMetadataSingleFile = (_editionCount) => {
   let metadata = metadataList.find((meta) => meta.edition == _editionCount);
   debugLogs
     ? console.log(
@@ -144,7 +129,7 @@ const startCreating = async () => {
     : null;
 
   while (layerConfigIndex < layerConfigurations.length) {
-    const layers = setupLayers(
+    const layers: Layer[] = setupLayers(
       layerConfigurations[layerConfigIndex].layersOrder
     );
 
@@ -154,34 +139,41 @@ const startCreating = async () => {
       const newDNA: DNA = createWeightedDNA(layers);
 
       if (isDNAUnique(dnaList, newDNA)) {
-        let results = constructLayerToDNA(newDNA, layers);
-        let loadedElements: any = [];
+        let results = mapDNAToLayers(newDNA, layers);
 
-        results.forEach((layer) => {
-          loadedElements.push(loadLayerImg(layer));
+        let loadedElements: Promise<LoadedImage>[] = results.map((result) => {
+          return loadLayerImg(result);
         });
 
         await Promise.all(loadedElements).then((renderObjectArray) => {
           debugLogs ? console.log("Clearing canvas") : null;
-          ctx.clearRect(0, 0, format.width, format.height);
+
+          ctx.clearRect(0, 0, FORMAT.width, FORMAT.height);
+
           if (background.generate) {
             drawBackground();
           }
+
           renderObjectArray.forEach((renderObject) => {
             drawElement(renderObject);
+            addAttributes(renderObject);
           });
+
           debugLogs
             ? console.log("Editions left to create: ", abstractedIndexes)
             : null;
+
           saveImage(abstractedIndexes[0]);
           addMetadata(newDNA, abstractedIndexes[0]);
-          saveMetaDataSingleFile(abstractedIndexes[0]);
+          saveMetadataSingleFile(abstractedIndexes[0]);
+
           console.log(
             `Created edition: ${abstractedIndexes[0]}, with DNA: ${sha1(
               newDNA.join("")
             )}`
           );
         });
+
         dnaList.push(newDNA);
         editionCount++;
         abstractedIndexes.shift();
@@ -199,7 +191,7 @@ const startCreating = async () => {
 
     layerConfigIndex++;
   }
-  writeMetaData(JSON.stringify(metadataList, null, 2));
+  writeMetadata(JSON.stringify(metadataList, null, 2));
 };
 
 export { startCreating, buildSetup };

@@ -1,8 +1,8 @@
 import { cleanDNA } from ".";
-import { Layer } from "./setupLayers";
+import type { MappedLayer, Layer } from "@types";
 
-const constructLayerToDNA = (dna: string[] = [], layers: Layer[] = []) => {
-  let mappedDnaToLayers = layers.map((layer, index) => {
+const mapDNAToLayers = (dna: string[] = [], layers: Layer[] = []) => {
+  let mappedDNAToLayers: MappedLayer[] = layers.map((layer, index) => {
     let selectedElement = layer.elements.find(
       (element) => element.id == cleanDNA(dna[index])
     );
@@ -15,7 +15,7 @@ const constructLayerToDNA = (dna: string[] = [], layers: Layer[] = []) => {
     };
   });
 
-  return mappedDnaToLayers;
+  return mappedDNAToLayers;
 };
 
-export default constructLayerToDNA;
+export default mapDNAToLayers;

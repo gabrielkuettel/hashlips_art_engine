@@ -9,6 +9,6 @@ export { default as saveImage } from "./saveImage";
 export { default as drawBackground } from "./drawBackground";
 export { default as getChecksum } from "./getChecksum";
 export { default as loadLayerImg } from "./loadLayerImg";
-export { default as constructLayerToDNA } from "./constructLayerToDNA";
+export { default as mapDNAToLayers } from "./mapDNAToLayers";
 export { default as isDNAUnique } from "./isDNAUnique";
 export { default as createWeightedDNA } from "./createWeightedDNA";

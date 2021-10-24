@@ -1,7 +1,11 @@
-import { DNAList } from "../main";
+import type { DNAList } from "@types";
 
-const isDNAUnique = (_DnaList: DNAList = [], _dna: string[] = []) => {
-  let foundDna = _DnaList.find((i) => i.join("") === _dna.join(""));
+/**
+ * @description Determines if the DNA has already been created by comparing the current configuration with the DnaList
+ * */
+const isDNAUnique = (DnaList: DNAList = [], dna: string[] = []) => {
+  let foundDna = DnaList.find((i) => i.join("") === dna.join(""));
+
   return foundDna == undefined ? true : false;
 };
 

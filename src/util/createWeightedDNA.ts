@@ -1,16 +1,4 @@
-import type { Layer } from "./setupLayers";
-
-/**
- * @description String of the element including the id, name and the filename.
- * @example `"14:Yellow Sunglasses#30.png"`
- */
-export type ElementString = string;
-
-/**
- * @description An array of element strings.
- * @example `["14:Yellow Sunglasses#30.png", "7:Green Eyes#50.png"]`
- */
-export type DNA = ElementString[];
+import type { DNA, Layer } from "@types";
 
 /**
  * @description Chooses an element for each layer based on its weight and returns them as an array of strings.

@@ -1,25 +1,6 @@
 import { getElements } from ".";
 import { layersDir } from "../main";
-import { LayerOrder } from "../config";
-
-/**
- * @description this is a type.
- */
-export type Layer = {
-  id: number;
-  name: string;
-  elements: Element[];
-  blendMode: any;
-  opacity: any;
-};
-
-export type Element = {
-  id: number;
-  name: string | undefined;
-  filename: string;
-  path: string;
-  weight: number;
-};
+import type { Layer, LayerOrder } from "@types";
 
 const setupLayers = (layersOrder: LayerOrder): Layer[] => {
   const layers = layersOrder.map((layerObj, index) => ({

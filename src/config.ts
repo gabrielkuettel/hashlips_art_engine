@@ -1,15 +1,8 @@
+import type { LayerConfigurations } from "@types";
+
 const description = "Algorilla NFT Project";
 const baseUri =
   "https://res.cloudinary.com/juniorsyndicate/image/upload/algorillas_prod";
-
-export type LayerOrder = {
-  name: string;
-}[];
-
-export type LayerConfigurations = {
-  growEditionSizeTo: number;
-  layersOrder: LayerOrder;
-}[];
 
 const layerConfigurations: LayerConfigurations = [
   // // AD (Arm Down)
@@ -80,7 +73,7 @@ const shuffleLayerConfigurations = true;
 
 const debugLogs = false;
 
-const format = {
+const FORMAT = {
   width: 512,
   height: 512,
 };
@@ -99,12 +92,12 @@ const uniqueDnaTorrance = 10000;
 const preview = {
   thumbPerRow: 10,
   thumbWidth: 200,
-  imageRatio: format.width / format.height,
+  imageRatio: FORMAT.width / FORMAT.height,
   imageName: "preview.png",
 };
 
 export {
-  format,
+  FORMAT,
   baseUri,
   description,
   background,
