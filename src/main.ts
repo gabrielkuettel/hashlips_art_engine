@@ -83,10 +83,10 @@ const addAttributes = (_element) => {
   });
 };
 
-const drawElement = (_renderObject: LoadedImage) => {
-  ctx.globalAlpha = _renderObject.layer.opacity;
-  ctx.globalCompositeOperation = _renderObject.layer.blendMode;
-  ctx.drawImage(_renderObject.loadedImage, 0, 0, FORMAT.width, FORMAT.height);
+const drawElement = (renderObject: LoadedImage) => {
+  ctx.globalAlpha = renderObject.layer.opacity;
+  ctx.globalCompositeOperation = renderObject.layer.blendMode;
+  ctx.drawImage(renderObject.loadedImage, 0, 0, FORMAT.width, FORMAT.height);
 };
 
 const writeMetadata = (data: string) => {
