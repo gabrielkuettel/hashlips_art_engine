@@ -1,19 +1,18 @@
-"use strict";
+import path from "path";
+import crypto from "crypto";
+import sha1 from "sha1";
+import fs from "fs";
+import { createCanvas, loadImage } from "canvas";
 
-const path = require("path");
-const crypto = require("crypto");
-const isLocal = typeof process.pkg === "undefined";
-const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
-const fs = require("fs");
-const sha1 = require(path.join(basePath, "/node_modules/sha1"));
-const { createCanvas, loadImage } = require(path.join(
-  basePath,
-  "/node_modules/canvas"
-));
-const buildDir = path.join(basePath, "/build");
-const layersDir = path.join(basePath, "/layers");
-console.log(path.join(basePath, "/src/config.js"));
-const {
+import type { LayerConfigurations, LayersOrder } from "./config";
+
+import { layersSetup, getElements } from "./util";
+
+export const basePath = process.cwd();
+export const buildDir = path.join(basePath, "/build");
+export const layersDir = path.join(basePath, "/layers");
+
+import {
   format,
   baseUri,
   description,
@@ -24,12 +23,33 @@ const {
   shuffleLayerConfigurations,
   debugLogs,
   extraMetadata,
-} = require(path.join(basePath, "/src/config.js"));
+} from "./config";
+
 const canvas = createCanvas(format.width, format.height);
 const ctx = canvas.getContext("2d");
-var metadataList = [];
-var attributesList = [];
-var dnaList = [];
+
+type AttributesList = {
+  trait_type: string;
+  value: string;
+};
+
+type MetadataList = {
+  edition: number;
+  dna: any;
+  name: string;
+  description: string;
+  image: string;
+  imageChecksum: string;
+  assetId: null;
+  dateGenerated: string;
+  dateMinted: null;
+  attributes: any;
+  compiler: string;
+};
+
+let attributesList: AttributesList[] = [];
+const metadataList: MetadataList[] = [];
+const dnaList: any = [];
 
 const buildSetup = () => {
   if (fs.existsSync(buildDir)) {
@@ -40,53 +60,9 @@ const buildSetup = () => {
   fs.mkdirSync(path.join(buildDir, "/images"));
 };
 
-const getRarityWeight = (_str) => {
-  let nameWithoutExtension = _str.slice(0, -4);
-  var nameWithoutWeight = Number(
-    nameWithoutExtension.split(rarityDelimiter).pop()
-  );
-  if (isNaN(nameWithoutWeight)) {
-    nameWithoutWeight = 0;
-  }
-  return nameWithoutWeight;
-};
-
-const cleanDna = (_str) => {
+const cleanDna = (_str: string) => {
   var dna = Number(_str.split(":").shift());
   return dna;
-};
-
-const cleanName = (_str) => {
-  let nameWithoutExtension = _str.slice(0, -4);
-  var nameWithoutWeight = nameWithoutExtension.split(rarityDelimiter).shift();
-  return nameWithoutWeight;
-};
-
-const getElements = (path) => {
-  return fs
-    .readdirSync(path)
-    .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
-    .map((i, index) => {
-      return {
-        id: index,
-        name: cleanName(i),
-        filename: i,
-        path: `${path}${i}`,
-        weight: getRarityWeight(i),
-      };
-    });
-};
-
-const layersSetup = (layersOrder) => {
-  const layers = layersOrder.map((layerObj, index) => ({
-    id: index,
-    name: layerObj.name,
-    elements: getElements(`${layersDir}/${layerObj.name}/`),
-    blendMode:
-      layerObj["blend"] != undefined ? layerObj["blend"] : "source-over",
-    opacity: layerObj["opacity"] != undefined ? layerObj["opacity"] : 1,
-  }));
-  return layers;
 };
 
 const saveImage = (_editionCount) => {
@@ -114,18 +90,20 @@ const getChecksum = (filepath) => {
   return sum;
 };
 
-const addMetadata = (_dna, _edition) => {
+const addMetadata = (_dna: string[], _edition: number) => {
   let tempMetadata = {
+    edition: _edition,
     dna: sha1(_dna.join("")),
-    name: `#${_edition}`,
+    name: `Algorilla #${_edition}`,
     description: description,
     image: `${baseUri}/${_edition}.png`,
-    checksum: getChecksum(`${basePath}/build/images/${_edition}.png`),
-    edition: _edition,
-    date: new Date(Date.now()).toLocaleDateString("en-US"),
-    ...extraMetadata,
+    imageChecksum: getChecksum(`${basePath}/build/images/${_edition}.png`),
+    assetId: null,
+    dateGenerated: new Date(Date.now()).toLocaleDateString("en-US"),
+    dateMinted: null,
     attributes: attributesList,
-    compiler: "0toa100 v1.0",
+    compiler: "v1.0",
+    ...extraMetadata,
   };
   metadataList.push(tempMetadata);
   attributesList = [];
@@ -153,8 +131,8 @@ const drawElement = (_renderObject) => {
   addAttributes(_renderObject);
 };
 
-const constructLayerToDna = (_dna = [], _layers = []) => {
-  let mappedDnaToLayers = _layers.map((layer, index) => {
+const constructLayerToDna = (_dna: any = [], _layers: any = []) => {
+  let mappedDnaToLayers = _layers.map((layer: any, index) => {
     let selectedElement = layer.elements.find(
       (e) => e.id == cleanDna(_dna[index])
     );
@@ -168,13 +146,13 @@ const constructLayerToDna = (_dna = [], _layers = []) => {
   return mappedDnaToLayers;
 };
 
-const isDnaUnique = (_DnaList = [], _dna = []) => {
+const isDnaUnique = (_DnaList: any = [], _dna: any = []) => {
   let foundDna = _DnaList.find((i) => i.join("") === _dna.join(""));
   return foundDna == undefined ? true : false;
 };
 
 const createDna = (_layers) => {
-  let randNum = [];
+  let randNum: any = [];
   _layers.forEach((layer) => {
     var totalWeight = 0;
     layer.elements.forEach((element) => {
@@ -212,7 +190,7 @@ const saveMetaDataSingleFile = (_editionCount) => {
   );
 };
 
-function shuffle(array) {
+function shuffle(array: number[]) {
   let currentIndex = array.length,
     randomIndex;
   while (currentIndex != 0) {
@@ -230,7 +208,8 @@ const startCreating = async () => {
   let layerConfigIndex = 0;
   let editionCount = 1;
   let failedCount = 0;
-  let abstractedIndexes = [];
+  let abstractedIndexes: number[] = [];
+
   for (
     let i = 1;
     i <= layerConfigurations[layerConfigurations.length - 1].growEditionSizeTo;
@@ -238,12 +217,15 @@ const startCreating = async () => {
   ) {
     abstractedIndexes.push(i);
   }
+
   if (shuffleLayerConfigurations) {
     abstractedIndexes = shuffle(abstractedIndexes);
   }
+
   debugLogs
     ? console.log("Editions left to create: ", abstractedIndexes)
     : null;
+
   while (layerConfigIndex < layerConfigurations.length) {
     const layers = layersSetup(
       layerConfigurations[layerConfigIndex].layersOrder
@@ -254,7 +236,7 @@ const startCreating = async () => {
       let newDna = createDna(layers);
       if (isDnaUnique(dnaList, newDna)) {
         let results = constructLayerToDna(newDna, layers);
-        let loadedElements = [];
+        let loadedElements: any = [];
 
         results.forEach((layer) => {
           loadedElements.push(loadLayerImg(layer));
@@ -300,4 +282,4 @@ const startCreating = async () => {
   writeMetaData(JSON.stringify(metadataList, null, 2));
 };
 
-module.exports = { startCreating, buildSetup, getElements };
+export { startCreating, buildSetup, getElements };

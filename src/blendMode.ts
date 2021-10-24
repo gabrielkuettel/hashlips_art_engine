@@ -1,5 +1,3 @@
-"use strict";
-
 const MODE = {
   sourceOver: "source-over",
   sourceIn: "source-in",
@@ -29,6 +27,4 @@ const MODE = {
   luminosity: "luminosity",
 };
 
-module.exports = {
-  MODE,
-};
+export default MODE;
